@@ -1,6 +1,8 @@
 
 Fail2SQL v1.0 by Jordan Tomkinson <jordan@moodle.com>
 
+Caution: this is not the official repository of Fail2SQL. For more informations visit http://fail2sql.sourceforge.net/
+
 ============
 Installation
 ============
@@ -33,5 +35,3 @@ Contact
 =======
 
 You can contact me at jordan@moodle.com
-
-
