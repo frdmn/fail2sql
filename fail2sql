@@ -12,65 +12,77 @@ $link = mysql_connect($mysqlhost, $mysqluser, $mysqlpass)
 // Select database
 mysql_select_db($mysqldatabase) or die('Could not select database');
 
+// Parse arguments
+$argument = $_SERVER["argv"][1];
 
-$name = $_SERVER["argv"][1];
-
-if ($name == "-l") {
-  $query = "SELECT * FROM `fail2ban` ORDER BY timestamp DESC LIMIT 50";
+// Check if argument is one of the switches below
+// -l => list switch
+if ($argument == "-l") {
+  // Retrieve and display latest 50 entries from DB
+  $query = "SELECT * FROM `$mysqldatabase` ORDER BY timestamp DESC LIMIT 50";
   $result = mysql_query($query) or die('Query failed: ' . mysql_error());
   while ($row = mysql_fetch_array($result, MYSQL_NUM)) {
+    // Print each row
     echo $row[1]."(".$row[3]."/".$row[2]."): ".$row[4]." | Geo: ".$row[9]."\n";
   }
+  // Close MySQL connection 
   mysql_close($link);
   exit;
-}else if ($name == "-c") {
-  $query = "DELETE FROM `fail2ban`";
+// -c => clear database switch
+}else if ($argument == "-c") {
+  // Delete all entries in MySQL database
+  $query = "DELETE FROM `$mysqldatabase`";
   $result = mysql_query($query) or die('Query failed: ' . mysql_error());
   echo "Resetting database\n";
   exit;
-}else if ($name == "-u") {
+// -u => update Geo database
+}else if ($argument == "-u") {
   exec("wget -O - http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz |zcat - > ".$home."/libs/GeoLiteCity.dat");
   exit;
-}else if ($name == "-h") {
+// -h => help switch
+}else if ($argument == "-h") {
+  // Execute usage function
   print_help();
 }
 
-$protocol = $_SERVER["argv"][2];
-$port = $_SERVER["argv"][3];
+// Arguments are no switches => Store values
+$protocol = $_SERVER["argv"][2]; // protocol is 2nd arg
+$port = $_SERVER["argv"][3]; // port is 3rd arg
 if (!preg_match('/^\d{1,5}$/', $port)) {
-  $port = getservbyname($_SERVER["argv"][3], $protocol);
+  $port = getservbyname($_SERVER["argv"][3], $protocol); // resolve service name to port
 }
 
-$ip = $_SERVER["argv"][4];
+$ip = $_SERVER["argv"][4]; // IP is 4th arg
 
-if (!$name || !$protocol || !$port || !$ip) {
+// If one of the arguments is missing, show usage
+if (!$argument || !$protocol || !$port || !$ip) {
   print_help();
 }
 
+// Include libraries
 include($home."/libs/geoipcity.inc");
 include($home."/libs/geoipregionvars.php");
 
-$query = "SELECT id FROM `fail2ban` WHERE name = '".$name."' AND protocol = '".$protocol."' AND port = '".$port."' AND ip = '".$ip."'";
-
-$result = mysql_query($query) or die('Query failed: ' . mysql_error());
-
-$num = mysql_numrows($result);
-
+// Lookup geo location
 $geodb = geoip_open($home."/libs/GeoLiteCity.dat",GEOIP_STANDARD) or die ('Failed to open Geo Database');
 $geoip = geoip_record_by_addr($geodb,$ip);
 
+// Check Geo result
 if ($geoip) {
-  $query = "INSERT INTO `fail2ban` values ('', '".$protocol."', '".$name."', '".$port."', '".$ip."', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."', '".date("Y-m-d H:i:s",time())."')";
-//  echo "Inserting $ip into database with geo info\n";
+  // If successfully resolved, add to DB with geo informations
+  $query = "INSERT INTO `$mysqldatabase` values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."', '".date("Y-m-d H:i:s",time())."')";
 }else {
-  $query = "INSERT INTO `fail2ban` values ('', '".$protocol."', '".$name."', '".$port."', '".$ip."', '', '', '', '', '".date("Y-m-d H:i:s",time())."')";
-//  echo "Inserting $ip into database without geo info\n";
+  // Otherwise add without geo informations
+  $query = "INSERT INTO `$mysqldatabase` values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '', '', '', '', '".date("Y-m-d H:i:s",time())."')";
 }
 
+// Execute query
 $result = mysql_query($query) or die('Query failed: ' . mysql_error());
 
+// Close MySQL connection
 mysql_close($link);
 
+// Function to show usage information
 function print_help() {
   echo "Fail2SQL v1.0 by Jordan Tomkinson <jordan@moodle.com>\n";
   echo "Usage: ".$_SERVER["argv"][0]." [-h|-l|-c|-u]\n";
