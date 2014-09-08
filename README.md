@@ -8,6 +8,8 @@ fail2sql
 fail2sql is called by Fail2Ban and logs information to a MySQL database including geographical location.
 This information can then be used in reports, graphs or by third party programs to take further action such as permanent blocking, reporting to ISP and so on
 
+fail2sql is written in PHP and makes use of the [MaxMind GeoIP](https://www.maxmind.com/) PHP API.
+
 #### Logged informations
 
 * Name (from fail2ban)
