@@ -12,8 +12,14 @@ $link = mysql_connect($mysqlhost, $mysqluser, $mysqlpass)
 // Select database
 mysql_select_db($mysqldatabase) or die('Could not select database');
 
-// Parse arguments
-$argument = $_SERVER["argv"][1];
+// Parse arguments, otherwise show usage info
+if (!empty($_SERVER["argv"][1])){
+  $argument = $_SERVER["argv"][1];
+} else {
+  // Execute usage function
+  print_help();
+  exit;
+}
 
 // Check if argument is one of the switches below
 // -l => list switch
@@ -43,20 +49,23 @@ if ($argument == "-l") {
 }else if ($argument == "-h") {
   // Execute usage function
   print_help();
+  exit;
 }
 
-// Arguments are no switches => Store values
-$protocol = $_SERVER["argv"][2]; // protocol is 2nd arg
-$port = $_SERVER["argv"][3]; // port is 3rd arg
-if (!preg_match('/^\d{1,5}$/', $port)) {
-  $port = getservbyname($_SERVER["argv"][3], $protocol); // resolve service name to port
-}
+// Check for additional arguments
+if (!empty($_SERVER["argv"][2]) && !empty($_SERVER["argv"][3]) && !empty($_SERVER["argv"][4])) {
+  // Arguments are no switches => Store values
+  $protocol = $_SERVER["argv"][2]; // protocol is 2nd arg
+  $port = $_SERVER["argv"][3]; // port is 3rd arg
 
-$ip = $_SERVER["argv"][4]; // IP is 4th arg
+  if (!preg_match('/^\d{1,5}$/', $port)) {
+    $port = getservbyname($_SERVER["argv"][3], $protocol); // resolve service name to port
+  }
 
-// If one of the arguments is missing, show usage
-if (!$argument || !$protocol || !$port || !$ip) {
+  $ip = $_SERVER["argv"][4]; // IP is 4th arg
+} else {
   print_help();
+  exit;
 }
 
 // Include libraries
