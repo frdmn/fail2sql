@@ -1,6 +1,8 @@
 fail2sql
 ========
 
+![](http://up.frd.mn/mz3ef.png)
+
 (originally by Jordan Tomkinson <jordan@moodle.com>, checkout the [SourceForge project page](http://fail2sql.sourceforge.net/))
 
 fail2sql is called by Fail2Ban and logs information to a MySQL database including geographical location.
