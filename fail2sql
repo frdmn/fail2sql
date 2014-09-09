@@ -12,10 +12,10 @@ mysql_select_db($mysqldatabase) or die('Could not select database');
 $name = $_SERVER["argv"][1];
 
 if ($name == "-l") {
-  $query = "SELECT * FROM `fail2ban` ORDER BY count DESC LIMIT 50";
+  $query = "SELECT * FROM `fail2ban` ORDER BY timestamp DESC LIMIT 50";
   $result = mysql_query($query) or die('Query failed: ' . mysql_error());
   while ($row = mysql_fetch_array($result, MYSQL_NUM)) {
-    echo $row[1]."(".$row[3]."/".$row[2]."): ".$row[4]." | Count: ".$row[5]." | Geo: ".$row[9]."\n";
+    echo $row[1]."(".$row[3]."/".$row[2]."): ".$row[4]." | Geo: ".$row[9]."\n";
   }
   mysql_close($link);
   exit;
@@ -53,20 +53,15 @@ $result = mysql_query($query) or die('Query failed: ' . mysql_error());
 
 $num = mysql_numrows($result);
 
-if ($num == "0") {
-  $geodb = geoip_open($home."/GeoLiteCity.dat",GEOIP_STANDARD) or die ('Failed to open Geo Database');
-  $geoip = geoip_record_by_addr($geodb,$ip);
-  if ($geoip) {
-    $query = "INSERT INTO `fail2ban` values ('', '".$name."', '".$protocol."', '".$port."', '".$ip."', '1', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."')";
-//    echo "Inserting $ip into database with geo info\n";
-  }else {
-    $query = "INSERT INTO `fail2ban` values ('', '".$name."', '".$protocol."', '".$port."', '".$ip."', '1', '', '', '', '')";
-//    echo "Inserting $ip into database without geo info\n";
-  }
+$geodb = geoip_open($home."/GeoLiteCity.dat",GEOIP_STANDARD) or die ('Failed to open Geo Database');
+$geoip = geoip_record_by_addr($geodb,$ip);
+
+if ($geoip) {
+  $query = "INSERT INTO `fail2ban` values ('', '".$protocol."', '".$name."', '".$port."', '".$ip."', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."', '".date("Y-m-d H:i:s",time())."')";
+//  echo "Inserting $ip into database with geo info\n";
 }else {
-  $row = mysql_fetch_row($result);
-  $query = "UPDATE `fail2ban` set count=count+1 where id = '".$row[0]."'";
-//  echo "Incrementing count for $ip (".$row[0].")\n";
+  $query = "INSERT INTO `fail2ban` values ('', '".$protocol."', '".$name."', '".$port."', '".$ip."', '', '', '', '', '".date("Y-m-d H:i:s",time())."')";
+//  echo "Inserting $ip into database without geo info\n";
 }
 
 $result = mysql_query($query) or die('Query failed: ' . mysql_error());
