@@ -1,11 +1,13 @@
 #!/usr/bin/php
 <?PHP
 
+require_once('settings.php');
+
 // Change the next two lines to suit
 $home = "/usr/local/fail2sql"; // path to fail2sql directory
-$link = mysql_connect('127.0.0.1', 'fail2ban', 'password') // host, username, password
+$link = mysql_connect($mysqlhost, $mysqluser, $mysqlpass) // host, username, password
   or die('Could not connect: ' . mysql_error());
-mysql_select_db('fail2ban') or die('Could not select database');
+mysql_select_db($mysqldatabase) or die('Could not select database');
 
 $name = $_SERVER["argv"][1];
 
