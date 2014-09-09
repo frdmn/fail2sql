@@ -1,13 +1,17 @@
 #!/usr/bin/php
 <?PHP
 
+// Load settings file
 require_once('settings.php');
 
-// Change the next two lines to suit
-$home = "/usr/local/fail2sql"; // path to fail2sql directory
-$link = mysql_connect($mysqlhost, $mysqluser, $mysqlpass) // host, username, password
+// Parse script location
+$home = realpath(dirname(__FILE__));
+// Establish MySQL connection
+$link = mysql_connect($mysqlhost, $mysqluser, $mysqlpass)
   or die('Could not connect: ' . mysql_error());
+// Select database
 mysql_select_db($mysqldatabase) or die('Could not select database');
+
 
 $name = $_SERVER["argv"][1];
 
@@ -25,7 +29,7 @@ if ($name == "-l") {
   echo "Resetting database\n";
   exit;
 }else if ($name == "-u") {
-  exec("wget -O - http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz |zcat - > ".$home."/GeoLiteCity.dat");
+  exec("wget -O - http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz |zcat - > ".$home."/libs/GeoLiteCity.dat");
   exit;
 }else if ($name == "-h") {
   print_help();
@@ -43,9 +47,8 @@ if (!$name || !$protocol || !$port || !$ip) {
   print_help();
 }
 
-
-include($home."/geoipcity.inc");
-include($home."/geoipregionvars.php");
+include($home."/libs/geoipcity.inc");
+include($home."/libs/geoipregionvars.php");
 
 $query = "SELECT id FROM `fail2ban` WHERE name = '".$name."' AND protocol = '".$protocol."' AND port = '".$port."' AND ip = '".$ip."'";
 
@@ -53,7 +56,7 @@ $result = mysql_query($query) or die('Query failed: ' . mysql_error());
 
 $num = mysql_numrows($result);
 
-$geodb = geoip_open($home."/GeoLiteCity.dat",GEOIP_STANDARD) or die ('Failed to open Geo Database');
+$geodb = geoip_open($home."/libs/GeoLiteCity.dat",GEOIP_STANDARD) or die ('Failed to open Geo Database');
 $geoip = geoip_record_by_addr($geodb,$ip);
 
 if ($geoip) {
