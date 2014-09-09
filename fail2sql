@@ -27,11 +27,11 @@ if ($argument == "-l") {
   // Retrieve and display latest 50 entries from DB
   $query = "SELECT * FROM `$mysqldatabase` ORDER BY timestamp DESC LIMIT 50";
   $result = mysql_query($query) or die('Query failed: ' . mysql_error());
-  while ($row = mysql_fetch_array($result, MYSQL_NUM)) {
+  while ($row = mysql_fetch_array($result)) {
     // Print each row
-    echo $row[1]."(".$row[3]."/".$row[2]."): ".$row[4]." | Geo: ".$row[9]."\n";
+    echo $row['timestamp']." - ".$row['name']."(".$row['port']."/".$row['protocol'].") - ".$row['ip']." - ".$row['geo']."\n";
   }
-  // Close MySQL connection 
+  // Close MySQL connection
   mysql_close($link);
   exit;
 // -c => clear database switch
@@ -79,10 +79,10 @@ $geoip = geoip_record_by_addr($geodb,$ip);
 // Check Geo result
 if ($geoip) {
   // If successfully resolved, add to DB with geo informations
-  $query = "INSERT INTO `$mysqldatabase` values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."', '".date("Y-m-d H:i:s",time())."')";
+  $query = "INSERT INTO `$mysqldatabase` (id, protocol, name, port, ip, longitude, latitude, country, geo, timestamp) values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '".$geoip->longitude."', '".$geoip->latitude."', '".$geoip->country_code."', '".$geoip->city.", ".$geoip->country_name."', '".date("Y-m-d H:i:s",time())."')";
 }else {
   // Otherwise add without geo informations
-  $query = "INSERT INTO `$mysqldatabase` values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '', '', '', '', '".date("Y-m-d H:i:s",time())."')";
+  $query = "INSERT INTO `$mysqldatabase` (id, protocol, name, port, ip, longitude, latitude, country, geo, timestamp) values ('', '".$protocol."', '".$argument."', '".$port."', '".$ip."', '', '', '', '', '".date("Y-m-d H:i:s",time())."')";
 }
 
 // Execute query
@@ -99,12 +99,8 @@ function print_help() {
   echo "\t -l: List entries in the database (max 50 showed)\n";
   echo "\t -c: Clear the database and start fresh\n";
   echo "\t -u: Update GeoIP database\n\n";
-  // echo "To call this script from Fail2Ban append the following line to 'actionban =' and restart fail2ban\n";
-  // echo "/path/to/fail2sql <name> <protocol> <port> <ip>\n";
-  // echo "Example for /etc/fail2ban/action.d/iptables.conf\n";
-  // echo "actionban = iptables -I fail2ban-<name> 1 -s <ip> -j DROP\n";
-  // echo "            /usr/local/fail2sql/fail2sql <name> <protocol> <port> <ip>\n";
   exit;
 }
 
 ?>
+
