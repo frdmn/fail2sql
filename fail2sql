@@ -99,11 +99,11 @@ function print_help() {
   echo "\t -l: List entries in the database (max 50 showed)\n";
   echo "\t -c: Clear the database and start fresh\n";
   echo "\t -u: Update GeoIP database\n\n";
-  echo "To call this script from Fail2Ban append the following line to 'actionban =' and restart fail2ban\n";
-  echo "/path/to/fail2sql <name> <protocol> <port> <ip>\n";
-  echo "Example for /etc/fail2ban/action.d/iptables.conf\n";
-  echo "actionban = iptables -I fail2ban-<name> 1 -s <ip> -j DROP\n";
-  echo "            /usr/local/fail2sql/fail2sql <name> <protocol> <port> <ip>\n";
+  // echo "To call this script from Fail2Ban append the following line to 'actionban =' and restart fail2ban\n";
+  // echo "/path/to/fail2sql <name> <protocol> <port> <ip>\n";
+  // echo "Example for /etc/fail2ban/action.d/iptables.conf\n";
+  // echo "actionban = iptables -I fail2ban-<name> 1 -s <ip> -j DROP\n";
+  // echo "            /usr/local/fail2sql/fail2sql <name> <protocol> <port> <ip>\n";
   exit;
 }
 
